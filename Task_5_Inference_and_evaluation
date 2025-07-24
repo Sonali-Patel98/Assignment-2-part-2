@@ -1,0 +1,38 @@
+# step1 deifine evaluation function(Greedy Decoding)
+def evaluate(sentence):
+    sentence = preprocess_sentence(sentence)
+
+    inputs = [inp_tokenizer.word_index.get(w, 0) for w in sentence.split(' ')]
+    inputs = tf.keras.preprocessing.sequence.pad_sequences([inputs], maxlen=input_tensor.shape[1], padding='post')
+    inputs = tf.convert_to_tensor(inputs)
+
+    result = ''
+
+    hidden = encoder.initialize_hidden_state(1)
+    enc_out, enc_hidden_h, enc_hidden_c = encoder(inputs, hidden)
+
+    dec_hidden = [enc_hidden_h, enc_hidden_c]
+    dec_input = tf.expand_dims([targ_tokenizer.word_index['<start>']], 0)
+
+    for _ in range(target_tensor.shape[1]):
+        predictions = decoder(dec_input, dec_hidden)
+        predicted_id = tf.argmax(predictions[0][0]).numpy()
+
+        predicted_word = targ_tokenizer.index_word.get(predicted_id, '')
+        if predicted_word == '<end>':
+            break
+
+        result += predicted_word + ' '
+
+        dec_input = tf.expand_dims([predicted_id], 0)
+
+    return result.strip()
+# step2 translate and print 5 examples
+for i in range(5):
+    input_sentence = input_texts[i]
+    actual_translation = target_texts[i]
+    predicted_translation = evaluate(input_sentence)
+
+    print(f'\nInput: {input_sentence}')
+    print(f'Target: {actual_translation}')
+    print(f'Predicted: {predicted_translation}')
